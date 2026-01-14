@@ -49,39 +49,51 @@ namespace Scheduler
          string pass = txtboxPassword.Text;
 
          const string sql = @"
-SELECT userId
-FROM user
-WHERE userName=@u AND password=@p AND active=1
-LIMIT 1;";
+                           SELECT userId, userName
+                           FROM user
+                           WHERE userName=@u AND password=@p AND active=1
+                           LIMIT 1;";
 
-         using (MySqlConnection conn = Database.GetOpenConnection())
-         using (MySqlCommand cmd = new MySqlCommand(sql, conn))
+         try
          {
-            cmd.Parameters.AddWithValue("@u", user);
-            cmd.Parameters.AddWithValue("@p", pass);
-
-            var userId = cmd.ExecuteScalar();
-            if (userId != null)
+            using (var conn = Scheduler.Data.Database.GetOpenConnection())
+            using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(sql, conn))
             {
-               MessageBox.Show("You are being signed in");
-               // TODO: open main form
-               return;
+               cmd.Parameters.AddWithValue("@u", user);
+               cmd.Parameters.AddWithValue("@p", pass);
+
+               using (var reader = cmd.ExecuteReader())
+               {
+                  if (reader.Read())
+                  {
+                     int userId = reader.GetInt32("userId");
+                     string userName = reader.GetString("userName");
+
+                     // log success (your LoginLogger)
+                     Scheduler.Data.LoginLogger.Log(userName, true);
+
+                     var session = new UserSession(userId, userName);
+
+                     // Open main form and close login cleanly
+                     this.Hide();
+                     using (var main = new MainForm(session))
+                     {
+                        main.ShowDialog();
+                     }
+                     this.Close();
+                     return;
+                  }
+               }
             }
+
+            // login failed
+            Scheduler.Data.LoginLogger.Log(user, false);
+            ShowInvalidCredentials();
          }
-
-         // login failed -> show localized error
-         //ShowInvalidCredentials();
-
-
-         ComponentResourceManager rm = new ComponentResourceManager(typeof(LoginForm));
-         CultureInfo culture = CultureInfo.CurrentUICulture;
-
-         MessageBox.Show(
-             rm.GetString("Error_InvalidCredentials", culture) ?? "Invalid username/password.",
-             Text,
-             MessageBoxButtons.OK,
-             MessageBoxIcon.Error
-         );
+         catch (Exception ex)
+         {
+            MessageBox.Show(ex.ToString(), "Login Error");
+         }
 
       }
 
@@ -89,5 +101,21 @@ LIMIT 1;";
       {
          this.Close();
       }
+
+      private void ShowInvalidCredentials()
+      {
+         ComponentResourceManager rm =
+             new ComponentResourceManager(typeof(LoginForm));
+         CultureInfo culture = CultureInfo.CurrentUICulture;
+
+         MessageBox.Show(
+             rm.GetString("Error_InvalidCredentials", culture)
+                 ?? "Invalid username or password.",
+             Text,
+             MessageBoxButtons.OK,
+             MessageBoxIcon.Error
+         );
+      }
+
    }
 }
