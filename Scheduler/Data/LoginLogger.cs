@@ -11,8 +11,8 @@ namespace Scheduler.Data
                            INSERT INTO login_activity (userName, loginTime, success)
                            VALUES (@u, @t, @s);";
 
-         using (var conn = Database.GetOpenConnection())
-         using (var cmd = new MySqlCommand(sql, conn))
+         using (MySqlConnection conn = Database.GetOpenConnection())
+         using (MySqlCommand cmd = new MySqlCommand(sql, conn))
          {
             cmd.Parameters.AddWithValue("@u", username);
             cmd.Parameters.AddWithValue("@t", DateTime.Now);

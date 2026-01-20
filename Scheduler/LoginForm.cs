@@ -46,68 +46,74 @@ namespace Scheduler
       private void btnLogin_Click(object sender, EventArgs e)
       {
          string user = txtboxUsername.Text.Trim();
-         string pass = txtboxPassword.Text.Trim();
+         string password = txtboxPassword.Text.Trim();
 
-         const string sql = @"
-            SELECT userId, userName
-            FROM user
-            WHERE userName=@u 
-               AND password=@p 
-               AND active=1
-            LIMIT 1;
-         ";
+         if (string.IsNullOrWhiteSpace(user) || string.IsNullOrWhiteSpace(password))
+         {
+            ShowInvalidCredentials();
+            return;
+         }
 
          try
          {
-            using (var conn = Database.GetOpenConnection())
-            using (var cmd = new MySqlCommand(sql, conn))
+            UserSession session = TryAuthenticate(user, password);
+
+            if (session == null)
             {
-               cmd.Parameters.AddWithValue("@u", user);
-               cmd.Parameters.AddWithValue("@p", pass);
-
-               using (var reader = cmd.ExecuteReader())
-               {
-                  if (reader.Read())
-                  {
-                     int userId = reader.GetInt32("userId");
-                     string userName = reader.GetString("userName");
-
-                     // Log successful attempt
-                     LoginLogger.Log(userName, true);
-
-                     UserSession session = new UserSession(userId, userName);
-
-                     // Create main
-                     MainForm main = new MainForm(session);
-
-                     // Hide login
-                     this.Hide();
-
-                     // Show main
-                     main.Show();
-
-                     return;
-
-                  }
-               }
+               LoginLogger.Log(user, false);
+               ShowInvalidCredentials();
+               return;
             }
 
-            // login failed
-            LoginLogger.Log(user, false);
-            ShowInvalidCredentials();
+            LoginLogger.Log(session.UserName, true);
+            OpenMainForm(session);
          }
-
          catch (Exception ex)
          {
-            MessageBox.Show(
-            ex.Message,
-            "Login Error",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-            );
+            MessageBox.Show(ex.Message, "Login Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
          }
-
       }
+
+      private UserSession TryAuthenticate(string user, string password)
+      {
+         const string sql = @"
+            SELECT userId, userName
+            FROM user
+            WHERE userName = @u
+               AND password = @p
+               AND active = 1
+            LIMIT 1;
+         ";
+
+         using (MySqlConnection conn = Database.GetOpenConnection())
+         using (MySqlCommand cmd = new MySqlCommand(sql, conn))
+         {
+            cmd.Parameters.AddWithValue("@u", user);
+            cmd.Parameters.AddWithValue("@p", password);
+
+            using (MySqlDataReader reader = cmd.ExecuteReader())
+            {
+               if (!reader.Read())
+                  return null;
+
+               int userId = reader.GetInt32("userId");
+               string userName = reader.GetString("userName");
+               return new UserSession(userId, userName);
+            }
+         }
+      }
+
+      private void OpenMainForm(UserSession session)
+      {
+         MainForm main = new MainForm(session);
+
+         main.FormClosed += (s, args) => Application.Exit();
+
+         this.Hide();
+         main.Show();
+      }
+
 
       private void btnExit_Click(object sender, EventArgs e)
       {
