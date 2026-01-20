@@ -46,18 +46,21 @@ namespace Scheduler
       private void btnLogin_Click(object sender, EventArgs e)
       {
          string user = txtboxUsername.Text.Trim();
-         string pass = txtboxPassword.Text;
+         string pass = txtboxPassword.Text.Trim();
 
          const string sql = @"
-                           SELECT userId, userName
-                           FROM user
-                           WHERE userName=@u AND password=@p AND active=1
-                           LIMIT 1;";
+            SELECT userId, userName
+            FROM user
+            WHERE userName=@u 
+               AND password=@p 
+               AND active=1
+            LIMIT 1;
+         ";
 
          try
          {
-            using (var conn = Scheduler.Data.Database.GetOpenConnection())
-            using (var cmd = new MySql.Data.MySqlClient.MySqlCommand(sql, conn))
+            using (var conn = Database.GetOpenConnection())
+            using (var cmd = new MySqlCommand(sql, conn))
             {
                cmd.Parameters.AddWithValue("@u", user);
                cmd.Parameters.AddWithValue("@p", pass);
@@ -69,30 +72,39 @@ namespace Scheduler
                      int userId = reader.GetInt32("userId");
                      string userName = reader.GetString("userName");
 
-                     // log success (your LoginLogger)
-                     Scheduler.Data.LoginLogger.Log(userName, true);
+                     // Log successful attempt
+                     LoginLogger.Log(userName, true);
 
-                     var session = new UserSession(userId, userName);
+                     UserSession session = new UserSession(userId, userName);
 
-                     // Open main form and close login cleanly
+                     // Create main
+                     MainForm main = new MainForm(session);
+
+                     // Hide login
                      this.Hide();
-                     using (var main = new MainForm(session))
-                     {
-                        main.ShowDialog();
-                     }
-                     this.Close();
+
+                     // Show main
+                     main.Show();
+
                      return;
+
                   }
                }
             }
 
             // login failed
-            Scheduler.Data.LoginLogger.Log(user, false);
+            LoginLogger.Log(user, false);
             ShowInvalidCredentials();
          }
+
          catch (Exception ex)
          {
-            MessageBox.Show(ex.ToString(), "Login Error");
+            MessageBox.Show(
+            ex.Message,
+            "Login Error",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Error
+            );
          }
 
       }

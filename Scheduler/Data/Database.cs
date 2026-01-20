@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace Scheduler.Data
 {
-    internal static class Database
-    {
+   internal static class Database
+   {
       private static string ConnectionString =>
          ConfigurationManager.ConnectionStrings["client_schedule"].ConnectionString;
 
