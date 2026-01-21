@@ -1,5 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
 using Scheduler.Data;
+using Scheduler.Models;
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -23,9 +24,12 @@ namespace Scheduler
 
       }
 
+      private BindingSource _customerBinding = new BindingSource();
+
       private void MainForm_Load(object sender, EventArgs e)
       {
          GetUpcomingAppointments();
+         LoadCustomers();
       }
 
       private void GetUpcomingAppointments()
@@ -80,7 +84,101 @@ namespace Scheduler
          }
          catch (Exception ex)
          {
-            // todo: log exception
+            Debug.WriteLine(ex);
+         }
+      }
+
+      private void LoadCustomers()
+      {
+         var customers = Database.GetCustomers();
+         _customerBinding.DataSource = customers;
+         dgvCustomers.AutoGenerateColumns = true;
+         dgvCustomers.DataSource = _customerBinding;
+      }
+
+      private bool ValidateCustomerInputs(string name, string address, string phone, out string error)
+      {
+         name = (name ?? "").Trim();
+         address = (address ?? "").Trim();
+         phone = (phone ?? "").Trim();
+
+         if (string.IsNullOrWhiteSpace(name) ||
+             string.IsNullOrWhiteSpace(address) ||
+             string.IsNullOrWhiteSpace(phone))
+         {
+            error = "Name, address, and phone are required.";
+            return false;
+         }
+
+         // digits and dashes only
+         foreach (char ch in phone)
+         {
+            if (!(char.IsDigit(ch) || ch == '-'))
+            {
+               error = "Phone can contain only digits and dashes.";
+               return false;
+            }
+         }
+
+         error = null;
+         return true;
+      }
+
+      private void btnDeleteCustomer_Click(object sender, EventArgs e)
+      {
+         if (dgvCustomers.CurrentRow == null || dgvCustomers.CurrentRow.DataBoundItem == null)
+            return;
+
+         var selected = dgvCustomers.CurrentRow.DataBoundItem as Customer;
+         if (selected == null)
+            return;
+
+         var confirm = MessageBox.Show(
+             $"Delete customer '{selected.CustomerName}'?",
+             "Confirm Delete",
+             MessageBoxButtons.YesNo,
+             MessageBoxIcon.Warning);
+
+         if (confirm != DialogResult.Yes)
+            return;
+
+         try
+         {
+            Database.DeleteCustomer(selected.CustomerId, _session.UserName);
+            LoadCustomers();
+         }
+         catch (Exception ex)
+         {
+            MessageBox.Show(ex.Message, "Delete Failed",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+         }
+      }
+
+      private void btnAddCustomer_Click(object sender, EventArgs e)
+      {
+         using (var form = new CustomerForm())
+         {
+            if (form.ShowDialog(this) != DialogResult.OK)
+               return;
+
+            try
+            {
+               Database.AddCustomer(
+                   form.CustomerName,
+                   form.Address,
+                   form.City,
+                   form.Country,
+                   form.PostalCode,
+                   form.Phone,
+                   _session.UserName);
+
+               LoadCustomers();
+            }
+            catch (Exception ex)
+            {
+               MessageBox.Show(ex.Message, "Add Failed",
+                   MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
          }
       }
 
