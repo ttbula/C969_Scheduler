@@ -40,7 +40,7 @@
          // lblUsername
          // 
          this.lblUsername.AutoSize = true;
-         this.lblUsername.Location = new System.Drawing.Point(21, 38);
+         this.lblUsername.Location = new System.Drawing.Point(70, 136);
          this.lblUsername.Name = "lblUsername";
          this.lblUsername.Size = new System.Drawing.Size(55, 13);
          this.lblUsername.TabIndex = 0;
@@ -49,7 +49,7 @@
          // lblPassword
          // 
          this.lblPassword.AutoSize = true;
-         this.lblPassword.Location = new System.Drawing.Point(21, 103);
+         this.lblPassword.Location = new System.Drawing.Point(70, 182);
          this.lblPassword.Name = "lblPassword";
          this.lblPassword.Size = new System.Drawing.Size(53, 13);
          this.lblPassword.TabIndex = 1;
@@ -57,21 +57,21 @@
          // 
          // txtboxUsername
          // 
-         this.txtboxUsername.Location = new System.Drawing.Point(208, 38);
+         this.txtboxUsername.Location = new System.Drawing.Point(194, 136);
          this.txtboxUsername.Name = "txtboxUsername";
          this.txtboxUsername.Size = new System.Drawing.Size(100, 20);
          this.txtboxUsername.TabIndex = 0;
          // 
          // txtboxPassword
          // 
-         this.txtboxPassword.Location = new System.Drawing.Point(208, 103);
+         this.txtboxPassword.Location = new System.Drawing.Point(194, 182);
          this.txtboxPassword.Name = "txtboxPassword";
          this.txtboxPassword.Size = new System.Drawing.Size(100, 20);
          this.txtboxPassword.TabIndex = 1;
          // 
          // btnLogin
          // 
-         this.btnLogin.Location = new System.Drawing.Point(233, 296);
+         this.btnLogin.Location = new System.Drawing.Point(73, 291);
          this.btnLogin.Name = "btnLogin";
          this.btnLogin.Size = new System.Drawing.Size(75, 23);
          this.btnLogin.TabIndex = 2;
@@ -82,7 +82,7 @@
          // btnExit
          // 
          this.btnExit.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-         this.btnExit.Location = new System.Drawing.Point(469, 296);
+         this.btnExit.Location = new System.Drawing.Point(219, 291);
          this.btnExit.Name = "btnExit";
          this.btnExit.Size = new System.Drawing.Size(75, 23);
          this.btnExit.TabIndex = 3;
@@ -104,7 +104,7 @@
          this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
          this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
          this.CancelButton = this.btnExit;
-         this.ClientSize = new System.Drawing.Size(800, 450);
+         this.ClientSize = new System.Drawing.Size(369, 442);
          this.Controls.Add(this.lblLocation);
          this.Controls.Add(this.btnExit);
          this.Controls.Add(this.btnLogin);

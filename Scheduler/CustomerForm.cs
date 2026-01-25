@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Scheduler.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -20,9 +21,29 @@ namespace Scheduler
       public string PostalCode => txtPostal.Text.Trim();
       public string Phone => txtPhone.Text.Trim();
 
+      public int CustomerId { get; private set; }
+
       public CustomerForm()
       {
          InitializeComponent();
+         this.Text = "Add Customer";
+         btnSave.Text = "Save";
+      }
+
+      public CustomerForm(Customer customer)
+      {
+         InitializeComponent();
+         CustomerId = customer.CustomerId;
+
+         txtName.Text = customer.CustomerName;
+         txtAddress.Text = customer.Address;
+         txtCity.Text = customer.City;
+         txtCountry.Text = customer.Country;
+         txtPostal.Text = customer.PostalCode;
+         txtPhone.Text = customer.Phone;
+
+         this.Text = "Edit Customer";
+         btnSave.Text = "Update";
       }
 
       private void btnSave_Click(object sender, EventArgs e)

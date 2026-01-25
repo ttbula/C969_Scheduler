@@ -11,9 +11,11 @@ namespace Scheduler.Models
       public int AppointmentId { get; set; }
       public int CustomerId { get; set; }
       public int UserId { get; set; }
+      public string CustomerName { get; set; }
       public string Type { get; set; }
-      public DateTime StartUtc { get; set; }
-      public DateTime EndUtc { get; set; }
+
+      public DateTime Start { get; set; }
+      public DateTime End { get; set; }
    }
 }
 

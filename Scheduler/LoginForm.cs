@@ -56,37 +56,44 @@ namespace Scheduler
 
          try
          {
-            UserSession session = TryAuthenticate(user, password);
-
-            if (session == null)
+            if (!TryAuthenticate(user, password, out int userId, out string userName))
             {
                LoginLogger.Log(user, false);
                ShowInvalidCredentials();
                return;
             }
 
-            LoginLogger.Log(session.UserName, true);
-            OpenMainForm(session);
+            UserSession.Start(userId, userName);
+            LoginLogger.Log(userName, true);
+            OpenMainForm();
          }
          catch (Exception ex)
          {
-            MessageBox.Show(ex.Message, "Login Error",
-                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(
+                ex.Message,
+                "Login Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
          }
       }
 
-      private UserSession TryAuthenticate(string user, string password)
+
+      private bool TryAuthenticate(string user, string password, out int userId, out string userName)
       {
+         userId = 0;
+         userName = null;
+
          const string sql = @"
-            SELECT userId, userName
-            FROM user
-            WHERE userName = @u
-               AND password = @p
-               AND active = 1
-            LIMIT 1;
+           SELECT userId, userName
+           FROM `user`
+           WHERE userName = @u
+             AND password = @p
+             AND active = 1
+           LIMIT 1;
          ";
 
-         using (MySqlConnection conn = Database.GetOpenConnection())
+         using (MySqlConnection conn = Database.GetConnection())
          using (MySqlCommand cmd = new MySqlCommand(sql, conn))
          {
             cmd.Parameters.AddWithValue("@u", user);
@@ -95,25 +102,26 @@ namespace Scheduler
             using (MySqlDataReader reader = cmd.ExecuteReader())
             {
                if (!reader.Read())
-                  return null;
+                  return false;
 
-               int userId = reader.GetInt32("userId");
-               string userName = reader.GetString("userName");
-               return new UserSession(userId, userName);
+               userId = reader.GetInt32("userId");
+               userName = reader.GetString("userName");
+               return true;
             }
          }
       }
 
-      private void OpenMainForm(UserSession session)
+
+
+      private void OpenMainForm()
       {
-         MainForm main = new MainForm(session);
+         MainForm main = new MainForm(UserSession.Current);
 
          main.FormClosed += (s, args) => Application.Exit();
 
          this.Hide();
          main.Show();
       }
-
 
       private void btnExit_Click(object sender, EventArgs e)
       {

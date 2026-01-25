@@ -1,19 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Scheduler
+﻿namespace Scheduler
 {
-    public class UserSession
-    {
+   public class UserSession
+   {
+      public static UserSession Current { get; private set; }
+
       public int UserId { get; }
       public string UserName { get; }
-      public UserSession(int userId, string userName)
+
+      private UserSession(int userId, string userName)
       {
-        UserId = userId;
-        UserName = userName;
+         UserId = userId;
+         UserName = userName;
+      }
+
+      public static void Start(int userId, string userName)
+      {
+         Current = new UserSession(userId, userName);
       }
    }
 }
