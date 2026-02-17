@@ -140,7 +140,7 @@ namespace Scheduler.Data
 
          const string insertSql = @"
            INSERT INTO country (country, createDate, createdBy, lastUpdate, lastUpdateBy)
-           VALUES (@c, NOW(), @u, NOWP(), @u);
+           VALUES (@c, NOW(), @u, NOW(), @u);
            SELECT LAST_INSERT_ID();";
 
          using (var insert = new MySqlCommand(insertSql, conn, tx))
@@ -283,11 +283,20 @@ namespace Scheduler.Data
       public static List<Appointment> GetAppointmentsForUser(int userId)
       {
          const string sql = @"
-           SELECT a.appointmentId, a.customerId, c.customerName, a.type, a.start, a.end
+           SELECT
+              a.appointmentId,
+              a.customerId,
+              a.userId,
+              c.customerName,
+              a.title,
+              a.type,
+              a.`start`,
+              a.`end`
            FROM appointment a
-           JOIN customer c ON a.customerId = c.customerId
-           WHERE a.userId = @uid
-           ORDER BY a.start;";
+           JOIN customer c ON c.customerId = a.customerId
+           WHERE a.userId = @userId
+            AND a.customerId = @customerId
+           ORDER BY a.`start`;";
 
          var list = new List<Appointment>();
 
@@ -317,29 +326,6 @@ namespace Scheduler.Data
          }
 
          return list;
-      }
-
-      public static bool HasOverlappingAppointment(int userId, DateTime start, DateTime end, int? excludeAppointmentId)
-      {
-         const string sql = @"
-           SELECT COUNT(*)
-           FROM appointment
-           WHERE userId = @uid
-             AND (@excludeId IS NULL OR appointmentId <> @excludeId)
-             AND start < @end
-             AND end > @start;";
-
-         using (var conn = GetConnection())
-         using (var cmd = new MySqlCommand(sql, conn))
-         {
-            cmd.Parameters.Add("@uid", MySqlDbType.Int32).Value = userId;
-            cmd.Parameters.Add("@start", MySqlDbType.DateTime).Value = start;
-            cmd.Parameters.Add("@end", MySqlDbType.DateTime).Value = end;
-            cmd.Parameters.Add("@excludeId", MySqlDbType.Int32).Value =
-                excludeAppointmentId.HasValue ? (object)excludeAppointmentId.Value : DBNull.Value;
-
-            return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
-         }
       }
 
       public static void AddAppointment(int customerId, int userId, string type, DateTime start, DateTime end, string userName)
@@ -405,11 +391,19 @@ namespace Scheduler.Data
       public static List<Appointment> GetAppointmentsForUserAndCustomer(int userId, int customerId)
       {
          const string sql = @"
-           SELECT a.appointmentId, a.customerId, c.customerName, a.type, a.start, a.end
-           FROM appointment a
-           JOIN customer c ON a.customerId = c.customerId
-           WHERE a.userId = @uid AND a.customerId = @cid
-           ORDER BY a.start;";
+            SELECT
+               a.appointmentId,
+               a.customerId,
+               a.userId,
+               c.customerName,
+               a.type,
+               a.start,
+               a.end
+            FROM appointment a
+            JOIN customer c ON a.customerId = c.customerId
+            WHERE a.userId = @uid
+              AND a.customerId = @cid
+            ORDER BY a.start;";
 
          var list = new List<Appointment>();
 
@@ -427,6 +421,7 @@ namespace Scheduler.Data
                   {
                      AppointmentId = reader.GetInt32("appointmentId"),
                      CustomerId = reader.GetInt32("customerId"),
+                     UserId = reader.GetInt32("userId"),
                      CustomerName = reader.GetString("customerName"),
                      Type = reader.IsDBNull(reader.GetOrdinal("type")) ? "" : reader.GetString("type"),
                      Start = reader.GetDateTime("start"),

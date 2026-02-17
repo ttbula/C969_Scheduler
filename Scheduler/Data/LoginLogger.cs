@@ -1,23 +1,25 @@
-﻿using MySql.Data.MySqlClient;
-using System;
+﻿using System;
+using System.IO;
 
 namespace Scheduler.Data
 {
    internal static class LoginLogger
    {
+      private const string LogFileName = "Login_History.txt";
+
       public static void Log(string username, bool success)
       {
-         const string sql = @"
-                           INSERT INTO login_activity (userName, loginTime, success)
-                           VALUES (@u, @t, @s);";
+         string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+         string status = success ? "Success" : "Failed";
+         string logEntry = $"{timestamp}\t{username}\t{status}";
 
-         using (MySqlConnection conn = Database.GetConnection())
-         using (MySqlCommand cmd = new MySqlCommand(sql, conn))
+         try
          {
-            cmd.Parameters.AddWithValue("@u", username);
-            cmd.Parameters.AddWithValue("@t", DateTime.Now);
-            cmd.Parameters.AddWithValue("@s", success ? 1 : 0);
-            cmd.ExecuteNonQuery();
+            File.AppendAllText(LogFileName, logEntry + Environment.NewLine);
+         }
+         catch (Exception ex)
+         {
+            System.Diagnostics.Debug.WriteLine($"Login logging failed: {ex.Message}");
          }
       }
    }

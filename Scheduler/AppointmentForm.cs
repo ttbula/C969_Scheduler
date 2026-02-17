@@ -25,23 +25,20 @@ namespace Scheduler
       private static readonly TimeZoneInfo Eastern =
           TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
 
-      public AppointmentForm() : this(DefaultUserId)
-      {
-      }
+      public AppointmentForm() : this(DefaultUserId, null) { }
 
-      public AppointmentForm(Appointment appt) : this(DefaultUserId, appt)
-      {
-      }
+      public AppointmentForm(Appointment appt) : this(DefaultUserId, appt) { }
 
-      public AppointmentForm(int userId)
+      public AppointmentForm(int userId, Appointment appt = null)
       {
          InitializeComponent();
 
          _userId = userId;
-         _appointmentId = null;
+         _appointmentId = appt?.AppointmentId;
+         _prefill = appt;
 
-         Text = "Add Appointment";
-         btnSave.Text = "Save";
+         Text = appt == null ? "New Appointment" : "Edit Appointment";
+         btnSave.Text = appt == null ? "Save" : "Update";
 
          dtpStartDate.ValueChanged += (_, __) => KeepEndAfterStart();
          dtpStartTime.ValueChanged += (_, __) => KeepEndAfterStart();
@@ -49,16 +46,6 @@ namespace Scheduler
          dtpEndTime.ValueChanged += (_, __) => KeepEndAfterStart();
 
          Load += AppointmentForm_Load;
-      }
-
-      public AppointmentForm(int userId, Appointment appt) : this(userId)
-      {
-         _appointmentId = appt.AppointmentId;
-
-         Text = "Edit Appointment";
-         btnSave.Text = "Update";
-
-         _prefill = appt;
       }
 
       private void AppointmentForm_Load(object sender, EventArgs e)
@@ -92,6 +79,9 @@ namespace Scheduler
 
          dtpEndDate.Value = endLocal.Date;
          dtpEndTime.Value = endLocal;
+
+         SnapMinutes(dtpStartTime, 5);
+         SnapMinutes(dtpEndTime, 5);
 
          cboCustomer.SelectedValue = _prefill.CustomerId;
          cboType.SelectedItem = _prefill.Type;
@@ -184,7 +174,16 @@ namespace Scheduler
             UserId = _userId,
             Type = type,
             Start = StartLocal,
-            End = EndLocal
+            End = EndLocal,
+            Title = type,        
+            Description = "",
+            Location = "",
+            Contact = "",
+            Url = "",
+            CreatedBy = "test",
+            LastUpdateBy = "test",
+            CreateDate = DateTime.Now,
+
          };
 
          if (_appointmentId == null)
@@ -227,6 +226,27 @@ namespace Scheduler
       {
          DialogResult = DialogResult.Cancel;
          Close();
+      }
+
+      private void SnapMinutes(DateTimePicker picker, int intervalMinutes = 5)
+      {
+         var dt = picker.Value;
+         int snappedMinutes = (dt.Minute / intervalMinutes) * intervalMinutes;
+
+         var snapped = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, snappedMinutes, 0);
+
+         if (picker.Value != snapped)
+            picker.Value = snapped;
+      }
+
+      private void dtpStartTime_ValueChanged(object sender, EventArgs e)
+      {
+         SnapMinutes(dtpStartTime, 5);
+      }
+
+      private void dtpEndTime_ValueChanged(object sender, EventArgs e)
+      {
+         SnapMinutes(dtpEndTime, 5);
       }
    }
 }

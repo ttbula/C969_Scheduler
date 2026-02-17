@@ -3,6 +3,7 @@ using Scheduler.Data;
 using Scheduler.Models;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace Scheduler
@@ -176,9 +177,6 @@ namespace Scheduler
          _apptBinding.DataSource = appts;
          dgvAppointments.AutoGenerateColumns = true;
          dgvAppointments.DataSource = _apptBinding;
-
-         //if (dgvAppointments.Columns["UserId"] != null) dgvAppointments.Columns["UserId"].Visible = false;
-         //if (dgvAppointments.Columns["CustomerId"] != null) dgvAppointments.Columns["CustomerId"].Visible = false;
       }
 
       private Appointment GetSelectedAppointment()
@@ -241,44 +239,6 @@ namespace Scheduler
          }
       }
 
-      private bool ValidateAppointmentRules(DateTime start, DateTime end, int? excludeAppointmentId, out string error)
-      {
-         if (end <= start)
-         {
-            error = "End must be after Start.";
-            return false;
-         }
-
-         var est = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-
-         DateTime estStart = TimeZoneInfo.ConvertTime(start, TimeZoneInfo.Local, est);
-         DateTime estEnd = TimeZoneInfo.ConvertTime(end, TimeZoneInfo.Local, est);
-
-         if (estStart.DayOfWeek == DayOfWeek.Saturday || estStart.DayOfWeek == DayOfWeek.Sunday)
-         {
-            error = "Appointments must be Monday–Friday (EST).";
-            return false;
-         }
-
-         TimeSpan open = new TimeSpan(9, 0, 0);
-         TimeSpan close = new TimeSpan(17, 0, 0);
-
-         if (estStart.TimeOfDay < open || estEnd.TimeOfDay > close)
-         {
-            error = "Appointments must be between 9:00 AM and 5:00 PM EST.";
-            return false;
-         }
-
-         if (Database.HasOverlappingAppointment(_session.UserId, start, end, excludeAppointmentId))
-         {
-            error = "This appointment overlaps with an existing appointment.";
-            return false;
-         }
-
-         error = null;
-         return true;
-      }
-
       private void btnAddAppointment_Click(object sender, EventArgs e)
       {
          var cust = GetSelectedCustomer();
@@ -289,36 +249,12 @@ namespace Scheduler
             return;
          }
 
-         using (var form = new AppointmentForm())
+         using (var form = new AppointmentForm(_session.UserId))
          {
             if (form.ShowDialog(this) != DialogResult.OK)
                return;
 
-            string error;
-            if (!ValidateAppointmentRules(form.Start, form.End, null, out error))
-            {
-               MessageBox.Show(error, "Invalid Appointment",
-                   MessageBoxButtons.OK, MessageBoxIcon.Warning);
-               return;
-            }
-
-            try
-            {
-               Database.AddAppointment(
-                   cust.CustomerId,
-                   _session.UserId,
-                   form.TypeText,
-                   form.Start,
-                   form.End,
-                   _session.UserName);
-
-               RefreshAppointmentsForSelectedCustomer();
-            }
-            catch (Exception ex)
-            {
-               MessageBox.Show(ex.Message, "Add Failed",
-                   MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            RefreshAppointmentsForSelectedCustomer();
          }
       }
 
@@ -335,31 +271,7 @@ namespace Scheduler
             if (form.ShowDialog(this) != DialogResult.OK)
                return;
 
-            string error;
-            if (!ValidateAppointmentRules(form.Start, form.End, selected.AppointmentId, out error))
-            {
-               MessageBox.Show(error, "Invalid Appointment",
-                   MessageBoxButtons.OK, MessageBoxIcon.Warning);
-               return;
-            }
-
-            try
-            {
-               Database.UpdateAppointment(
-                   selected.AppointmentId,
-                   selected.CustomerId,
-                   form.TypeText,
-                   form.Start,
-                   form.End,
-                   _session.UserName);
-
-               RefreshAppointmentsForSelectedCustomer();
-            }
-            catch (Exception ex)
-            {
-               MessageBox.Show(ex.Message, "Update Failed",
-                   MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            RefreshAppointmentsForSelectedCustomer();
          }
       }
 
@@ -389,5 +301,34 @@ namespace Scheduler
          }
       }
 
+      private void monthCalendar1_DateChanged(object sender, DateRangeEventArgs e)
+      {
+         DateTime selectedDate = e.Start.Date;
+
+         var allAppointments = AppointmentDAO.GetAllAppointments();
+
+         // Filter appointments for selected date
+         var dailyAppointments = allAppointments
+             .Where(a => a.Start.Date == selectedDate)
+             .OrderBy(a => a.Start)
+             .ToList();
+
+         _apptBinding.DataSource = dailyAppointments;
+         dgvAppointments.DataSource = _apptBinding;
+
+         if (dailyAppointments.Count == 0)
+         {
+            MessageBox.Show($"No appointments scheduled for {selectedDate:D}",
+                "Calendar View", MessageBoxButtons.OK, MessageBoxIcon.Information);
+         }
+      }
+
+      private void btnReports_Click(object sender, EventArgs e)
+      {
+         using (var reportsForm = new ReportsForm())
+         {
+            reportsForm.ShowDialog(this);
+         }
+      }
    }
 }

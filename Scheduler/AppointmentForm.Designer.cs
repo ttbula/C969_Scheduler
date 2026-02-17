@@ -68,6 +68,7 @@
          this.btnSave.TabIndex = 3;
          this.btnSave.Text = "Save";
          this.btnSave.UseVisualStyleBackColor = true;
+         this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
          // 
          // cboCustomer
          // 
@@ -113,6 +114,7 @@
          this.dtpStartTime.Name = "dtpStartTime";
          this.dtpStartTime.Size = new System.Drawing.Size(200, 20);
          this.dtpStartTime.TabIndex = 9;
+         this.dtpStartTime.ValueChanged += new System.EventHandler(this.dtpStartTime_ValueChanged);
          // 
          // dtpEndTime
          // 
@@ -122,6 +124,7 @@
          this.dtpEndTime.Name = "dtpEndTime";
          this.dtpEndTime.Size = new System.Drawing.Size(200, 20);
          this.dtpEndTime.TabIndex = 10;
+         this.dtpEndTime.ValueChanged += new System.EventHandler(this.dtpEndTime_ValueChanged);
          // 
          // label3
          // 
