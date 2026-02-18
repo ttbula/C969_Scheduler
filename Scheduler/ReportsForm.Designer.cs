@@ -37,7 +37,7 @@
          // 
          // btnUserSchedules
          // 
-         this.btnUserSchedules.Location = new System.Drawing.Point(250, 60);
+         this.btnUserSchedules.Location = new System.Drawing.Point(316, 60);
          this.btnUserSchedules.Name = "btnUserSchedules";
          this.btnUserSchedules.Size = new System.Drawing.Size(200, 40);
          this.btnUserSchedules.TabIndex = 1;
@@ -47,7 +47,7 @@
          // 
          // btnCustomerAppointments
          // 
-         this.btnCustomerAppointments.Location = new System.Drawing.Point(470, 60);
+         this.btnCustomerAppointments.Location = new System.Drawing.Point(570, 60);
          this.btnCustomerAppointments.Name = "btnCustomerAppointments";
          this.btnCustomerAppointments.Size = new System.Drawing.Size(200, 40);
          this.btnCustomerAppointments.TabIndex = 2;
@@ -69,9 +69,9 @@
          // 
          this.lblReportTitle.AutoSize = true;
          this.lblReportTitle.Font = new System.Drawing.Font("Yu Gothic", 18F, System.Drawing.FontStyle.Bold);
-         this.lblReportTitle.Location = new System.Drawing.Point(310, 15);
+         this.lblReportTitle.Location = new System.Drawing.Point(362, 26);
          this.lblReportTitle.Name = "lblReportTitle";
-         this.lblReportTitle.Size = new System.Drawing.Size(104, 31);
+         this.lblReportTitle.Size = new System.Drawing.Size(105, 31);
          this.lblReportTitle.TabIndex = 4;
          this.lblReportTitle.Text = "Reports";
          // 
@@ -91,6 +91,7 @@
          ((System.ComponentModel.ISupportInitialize)(this.dgvReport)).EndInit();
          this.ResumeLayout(false);
          this.PerformLayout();
+
       }
 
       #endregion

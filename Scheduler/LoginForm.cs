@@ -41,8 +41,6 @@ namespace Scheduler
          btnExit.Text = rm.GetString("Button_Exit", culture) ?? btnExit.Text;
       }
 
-
-
       private void btnLogin_Click(object sender, EventArgs e)
       {
          string user = txtboxUsername.Text.Trim();
@@ -78,7 +76,6 @@ namespace Scheduler
          }
       }
 
-
       private bool TryAuthenticate(string user, string password, out int userId, out string userName)
       {
          userId = 0;
@@ -110,8 +107,6 @@ namespace Scheduler
             }
          }
       }
-
-
 
       private void OpenMainForm()
       {

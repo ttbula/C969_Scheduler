@@ -197,14 +197,14 @@ namespace Scheduler.Data
       }
 
       public static void UpdateCustomer(
-    int customerId,
-    string customerName,
-    string address,
-    string city,
-    string country,
-    string postalCode,
-    string phone,
-    string userName)
+         int customerId,
+         string customerName,
+         string address,
+         string city,
+         string country,
+         string postalCode,
+         string phone,
+         string userName)
       {
          using (var conn = GetConnection())
          using (var tx = conn.BeginTransaction())

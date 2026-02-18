@@ -12,14 +12,13 @@ namespace Scheduler
          InitializeComponent();
       }
 
-      // REPORT 1: Number of appointment types by month
+      // Number of appointment types by month
       private void btnTypesByMonth_Click(object sender, EventArgs e)
       {
          try
          {
             var appointments = AppointmentDAO.GetAllAppointments();
 
-            // Lambda expression to group and count
             var report = appointments
                .GroupBy(a => new {
                   Month = a.Start.ToString("MMMM yyyy"),
@@ -49,14 +48,13 @@ namespace Scheduler
          }
       }
 
-      // REPORT 2: Schedule for each user
+      // Schedule for each user
       private void btnUserSchedules_Click(object sender, EventArgs e)
       {
          try
          {
             var appointments = AppointmentDAO.GetAllAppointments();
 
-            // Lambda expression to organize by user
             var report = appointments
                .OrderBy(a => a.UserId)
                .ThenBy(a => a.Start)
@@ -84,14 +82,13 @@ namespace Scheduler
          }
       }
 
-      // REPORT 3: Appointments by customer (custom report)
+      // Appointments by customer 
       private void btnCustomerAppointments_Click(object sender, EventArgs e)
       {
          try
          {
             var appointments = AppointmentDAO.GetAllAppointments();
 
-            // Lambda expression to count appointments per customer
             var report = appointments
                .GroupBy(a => new {
                   a.CustomerId,
